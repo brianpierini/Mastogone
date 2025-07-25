@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+*.log
+deleted_statuses_backup.jsonl
+preview_log.txt
+deleted_statuses_log.txt
+.env 
