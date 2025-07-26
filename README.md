@@ -1,5 +1,8 @@
 # Mastogone
 
+![Demo of Mastogone in action](media/mastogone_demo.gif)
+
+
 > **Note:** Mastodon only allows 30 deletions every 30 minutes. For large numbers of posts, it's best to run Mastogone as a cron job (see below).
 
 Mastogone is a CLI tool to delete Mastodon posts older than a specified number of days, with advanced filtering, backup, preview, and automation options.
