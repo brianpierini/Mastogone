@@ -36,7 +36,7 @@ def delete_status(mastodon, status_id):
 def process_statuses(
     api_base_url, access_token, days_old, preview_only, log_file,
     match_patterns=None, use_regex=False, after=None, before=None, backup_file=None,
-    include_replies=False, include_reblogs=False,
+    include_replies=False, include_reblogs=False, include_statuses=True,
     quiet=False,
     delete_batch_size=30
 ):
@@ -101,6 +101,9 @@ def process_statuses(
                     is_reblog = status['reblog'] is not None
                     if (is_reply and not include_replies) or (is_reblog and not include_reblogs):
                         logger.debug(f"Skipping status ID {status['id']} (reply: {is_reply}, reblog: {is_reblog})")
+                        continue
+                    if not include_statuses and not is_reply and not is_reblog:
+                        logger.debug(f"Skipping status ID {status['id']}")
                         continue
                     in_range = True
                     if after_dt and created_at < after_dt:
@@ -238,12 +241,13 @@ SECURITY TIP: For automation, consider passing your access token via the MASTOGO
 @click.option("--after", default=None, help="Only consider statuses after this date (YYYY-MM-DD or ISO format)")
 @click.option("--before", default=None, help="Only consider statuses before this date (YYYY-MM-DD or ISO format)")
 @click.option("--backup-file", default=None, help="Backup deleted statuses to this JSONL file (default: deleted_statuses_backup.jsonl)")
+@click.option("--include-statuses/--exclude-statuses", default=True, help="Include statuses in deletion/preview (default: include)")
 @click.option("--include-replies/--exclude-replies", default=False, help="Include replies in deletion/preview (default: exclude)")
 @click.option("--include-reblogs/--exclude-reblogs", default=False, help="Include reblogs in deletion/preview (default: exclude)")
 @click.option("--verbose", is_flag=True, default=False, help="Enable verbose output (DEBUG logging)")
 @click.option("--quiet", is_flag=True, default=False, help="Suppress most output except errors")
 @click.option("--delete-batch-size", default=30, show_default=True, type=int, help="Number of deletes before pausing for rate limit (default: 30)")
-def cli(api_base_url, days, preview, log_file, match, regex, after, before, backup_file, include_replies, include_reblogs, verbose, quiet, delete_batch_size):
+def cli(api_base_url, days, preview, log_file, match, regex, after, before, backup_file, include_replies, include_reblogs, include_statuses, verbose, quiet, delete_batch_size):
     # Check for forbidden --token argument in sys.argv
     for arg in sys.argv:
         if arg.startswith('--token') or arg == '-p':
@@ -286,6 +290,7 @@ def cli(api_base_url, days, preview, log_file, match, regex, after, before, back
             backup_file=backup_file,
             include_replies=include_replies,
             include_reblogs=include_reblogs,
+            include_statuses=include_statuses,
             quiet=quiet
         )
     except (OSError, IOError) as e:
@@ -313,6 +318,7 @@ def cli(api_base_url, days, preview, log_file, match, regex, after, before, back
                     backup_file="deleted_statuses_backup.jsonl",  # Always write backup
                     include_replies=include_replies,
                     include_reblogs=include_reblogs,
+                    include_statuses=include_statuses,
                     quiet=quiet,
                     delete_batch_size=delete_batch_size
                 )
